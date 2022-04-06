@@ -1,0 +1,21 @@
+{
+  "name": "NPair Protocol",
+  "version": "1.0.0",
+  "description": "A simple serial protocol do pair-wise data exchange",
+  "keywords": "planet, happiness, people",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/marcusvinoli/npair-protocol.git"
+  },
+  "authors": [
+    {
+      "name": "Marcus V M Oliveira",
+      "email": "marcusvinoli@gmail.com",
+      "url": "https://www.github.com/marcusvinoli"
+    }
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/marcusvinoli/npair-protocol",
+  "frameworks": "*",
+  "platforms": "*"
+}
