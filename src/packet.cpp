@@ -1,6 +1,8 @@
 #include "packet.h"
 #include <stdlib.h>     /* atoi */
 
+namespace npair {
+
 void Packet::onPacketValidation(void (*callback)()) {
   validationCallback = callback;
 }
@@ -156,3 +158,5 @@ bool Packet::get(uint16_t addr, uint8_t dest[]) {
 /* bool Packet::assembly(uint16_t addr, uint8_t data[], int data_size) {
   
 } */
+
+} // namespace npair

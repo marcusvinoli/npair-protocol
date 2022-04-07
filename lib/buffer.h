@@ -24,6 +24,8 @@
 #ifndef __NPAIR_BUFFER_H__
 #define __NPAIR_BUFFER_H__
 
+namespace npair {
+
 template <int N> 
 class Buffer {
   public: 
@@ -115,5 +117,6 @@ bool Buffer<N>::get(int pos, uint8_t &dest) {
   return true;
 }
 
+} // namespace npair
 
 #endif // __NPAIR_BUFFER_H__
