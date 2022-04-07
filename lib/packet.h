@@ -35,6 +35,8 @@
 
 #define MAX_PACKET_SIZE 100 // This can be changed due application requirements
 
+namespace npair {
+
 enum packet_status {
   ERROR,
   IDLE,
@@ -72,5 +74,7 @@ class Packet : public Buffer<MAX_PACKET_SIZE> {
   uint8_t version[3];
   int find(uint8_t value, int from_index = 0);
 };
+
+} // namespace npair
 
 #endif // __NPAIR_PACKET_H__
