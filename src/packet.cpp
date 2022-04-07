@@ -7,13 +7,15 @@ void Packet::onPacketValidation(void (*callback)()) {
   validationCallback = callback;
 }
 
-bool Packet::onSerialInEvent(uint8_t &data) {  
+bool Packet::onSerialInEvent(uint8_t &data) {
+  bool ret = true;
   switch(status) {
     case IDLE: 
       if(data == START_CHAR) {
         status = START_COLLECTING;
+        break;
       }
-    break;
+      ret = false;
     case START_COLLECTING:
       static int counter{0};
       if(counter < 3) {
@@ -31,12 +33,15 @@ bool Packet::onSerialInEvent(uint8_t &data) {
             status = VERIFYING_PACKET_SIZE;
           } else {
             status = ERROR;
+            ret = false;
             break;
           }
     case VERIFYING_PACKET_SIZE:
       if(data <= MAX_PACKET_SIZE) {
         status = START_DELIMITER;
+        break;
       }
+      ret = false;
     break;
     case START_DELIMITER: 
       if(data == DELIMITER_CHAR_LEFT) {
@@ -77,7 +82,7 @@ bool Packet::onSerialInEvent(uint8_t &data) {
       return false;
     break;
   }
-  return true;
+  return ret;
 }
 
 bool Packet::onSerialOutEvent(uint8_t &data) {
@@ -154,6 +159,11 @@ bool Packet::get(uint16_t addr, uint8_t dest[]) {
   } while(index_end > -1);
   return false;
 }
+
+void Packet::clear() {
+  status = IDLE;
+  Buffer::clear();
+} 
 
 /* bool Packet::assembly(uint16_t addr, uint8_t data[], int data_size) {
   

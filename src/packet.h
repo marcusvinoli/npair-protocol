@@ -68,6 +68,9 @@ class Packet : public Buffer<MAX_PACKET_SIZE> {
   // Inserting data to a specific address
   bool set(uint16_t addr, uint8_t data[], int data_size);
 
+  // Cleaning method
+  void clear();
+
   private:
   void (*validationCallback)(void);
   packet_status status{IDLE};
