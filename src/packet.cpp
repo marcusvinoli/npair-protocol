@@ -1,4 +1,5 @@
 #include "packet.h"
+#include <stdlib.h>     /* atoi */
 
 void Packet::onPacketValidation(void (*callback)()) {
   validationCallback = callback;
@@ -116,7 +117,7 @@ bool Packet::onSerialOutEvent(uint8_t &data) {
 
 int Packet::find(uint8_t value, int from_index) {
   uint8_t var;
-  while(get(from_index, var)) {
+  while(Buffer::get(from_index, var)) {
     if(var == value) {
       return from_index;
     } else {
@@ -126,7 +127,7 @@ int Packet::find(uint8_t value, int from_index) {
   return -1;
 }
 
-bool Packet::parse(uint16_t addr, uint8_t dest[]) {
+bool Packet::get(uint16_t addr, uint8_t dest[]) {
   bool found = false;
   uint8_t address[4] = {0};
   int end_of_buff = find(DELIMITER_CHAR_RIGHT);
@@ -134,7 +135,7 @@ bool Packet::parse(uint16_t addr, uint8_t dest[]) {
   int index_end = find(ATTRIBUTE_CHAR);
   do {
     for(int i = index_start + 1, n = 0; i < index_end; i++, n ++) {
-      get(i, address[n]);
+      Buffer::get(i, address[n]);
     }
     uint16_t addr_parsed = atoi((char*)address);
     if(addr_parsed == addr) {
@@ -142,7 +143,7 @@ bool Packet::parse(uint16_t addr, uint8_t dest[]) {
       index_end = find(SEPARATOR_CHAR, index_start);
       index_end = index_end == -1 ? end_of_buff : index_end;
       for(int m=0, n=index_start; n < index_end; m++, n++) {
-        get(n, dest[m]);
+        Buffer::get(n, dest[m]);
       }
       return true;
     }
@@ -152,6 +153,6 @@ bool Packet::parse(uint16_t addr, uint8_t dest[]) {
   return false;
 }
 
-bool Packet::assembly(uint16_t addr, uint8_t data[], int data_size) {
+/* bool Packet::assembly(uint16_t addr, uint8_t data[], int data_size) {
   
-}
+} */
