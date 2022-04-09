@@ -50,6 +50,7 @@ enum packet_status {
   END_DELIMITER,
   END_OF_PACKET,
   PARSING,
+  READY_FOR_ASSEMBLYING,
   ASSEMBLYING,
   READY_FOR_DISPATCH,
   DISPATCHING,
@@ -68,8 +69,15 @@ class Packet : public Buffer<MAX_PACKET_SIZE> {
   // Inserting data to a specific address
   bool set(uint16_t addr, uint8_t data[], int data_size);
 
-  // Cleaning method
-  void clear();
+  // Dropping (cleaning) method
+  void drop();
+
+  // Start assemblying method
+  void readyToAssembly();
+
+  // Status changes
+  void readyToReceive();
+  void readyToDispatch();
 
   private:
   void (*validationCallback)(void);

@@ -1,7 +1,8 @@
 #include "packet.h"
 #include <stdlib.h>     /* atoi */
+#include <stdio.h>      /* sprintf */
 
-namespace npair {
+namespace npair { 
 
 void Packet::onPacketValidation(void (*callback)()) {
   validationCallback = callback;
@@ -74,6 +75,7 @@ bool Packet::onSerialInEvent(uint8_t &data) {
         if(validationCallback != nullptr) {
           validationCallback();
         }
+        status = PARSING;
       } else {
         status = COLLECTING_DO_ADDR;
       }
@@ -135,6 +137,9 @@ int Packet::find(uint8_t value, int from_index) {
 }
 
 bool Packet::get(uint16_t addr, uint8_t dest[]) {
+  if(status != PARSING) {
+    return false;
+  }
   bool found = false;
   uint8_t address[4] = {0};
   int end_of_buff = find(DELIMITER_CHAR_RIGHT);
@@ -160,12 +165,68 @@ bool Packet::get(uint16_t addr, uint8_t dest[]) {
   return false;
 }
 
-void Packet::clear() {
+bool Packet::set(uint16_t addr, uint8_t data[], int data_size) {
+  if(status != ASSEMBLYING && status != READY_FOR_ASSEMBLYING) { 
+    return false;
+  }
+  
+  if(addr < 0) {
+    return false;
+  }
+
+  uint8_t tmp_char{0};
+  if(status == READY_FOR_ASSEMBLYING) {
+    status = ASSEMBLYING;
+    tmp_char = (uint8_t)DELIMITER_CHAR_LEFT;
+    Buffer::write(tmp_char);
+  } else {
+    tmp_char = (uint8_t)SEPARATOR_CHAR;
+    Buffer::write(tmp_char);
+  }
+  
+  char buff[] = {0, 0, 0, 0, 0, 0};
+  sprintf(buff, "%d", addr);
+  int index = 0; 
+  
+  while(buff[index] != '\0') {
+    uint8_t data_char = (uint8_t)buff[index];
+    Buffer::write(data_char);
+    index++;
+  }
+  
+  Buffer::write(tmp_char);
+
+  for(int i = 0; i<data_size; i++) {
+    Buffer::write(data[i]);
+  }
+
+  return true;
+}
+
+void Packet::drop() {
   status = IDLE;
   Buffer::clear();
 } 
 
-/* bool Packet::assembly(uint16_t addr, uint8_t data[], int data_size) {
+void Packet::readyToAssembly() {
+  Buffer::clear();
+  status = READY_FOR_ASSEMBLYING;
+}
+
+void Packet::readyToReceive() {
+  drop();
+}
+
+void Packet::readyToDispatch() {
+  uint8_t tmp_char = (uint8_t)DELIMITER_CHAR_RIGHT;
+  Buffer::write(tmp_char);
+  tmp_char = (uint8_t)END_DELIMITER;
+  Buffer::write(tmp_char);
+  status = READY_FOR_DISPATCH;
+}
+
+
+/* bool Packet::set(uint16_t addr, uint8_t data[], int data_size) {
   
 } */
 

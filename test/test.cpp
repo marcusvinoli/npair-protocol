@@ -11,7 +11,6 @@
 
 bool overall_ret{true};
 template<typename T>
-
 void assert_equal(const T& expected, const T& actual) {
   if (expected == actual) {
     std::cout << GREEN_COLOURING_START;
@@ -23,6 +22,12 @@ void assert_equal(const T& expected, const T& actual) {
     std::cout<<"\t  Actual: "<< actual <<std::endl;
     overall_ret = false;
   }
+}
+
+template<typename T, typename U>
+void assert_equal(const T& expected, const U& actual) {
+  T _actual = (T)actual;
+  assert_equal(expected, _actual);
 }
 
 void assert_true(const bool a) {
@@ -39,7 +44,7 @@ void start_test(std::string test_name) {
   test_no++;
 }
 
-void end_test() {
+int end_test() {
   std::cout << std::endl;
   if(overall_ret) {
     std::cout << GREEN_COLOURING_START;
@@ -50,6 +55,8 @@ void end_test() {
   }
   std::cout << COLOURING_STOP;
   std::cout << std::endl;
+
+  return (int)overall_ret;
 }
 
 uint8_t validVoidPacket[] = {'$', '0', '0', '1', '1', 0, '{', '}', '\n'};
@@ -69,22 +76,34 @@ int insert_array_in_packet(uint8_t arr[], int len, npair::Packet *pck) {
 
 npair::Packet testPacket;
 
+bool ret = false; 
+void ok_test() {
+  ret = true;
+}
+
 int main() {
   start_test("Valid Void Packet");
-  testPacket.clear();
+  testPacket.drop();
   int arrSize = sizeof(validVoidPacket)/sizeof(uint8_t);
   int insertSize = insert_array_in_packet(validVoidPacket, arrSize, &testPacket);
   assert_equal(arrSize, insertSize);
 
   start_test("Valid Normal Packet");
-  testPacket.clear();
+  testPacket.drop();
   arrSize = sizeof(validPacket)/sizeof(uint8_t);
   insertSize = insert_array_in_packet(validPacket, arrSize, &testPacket);
   assert_equal(arrSize, insertSize);
+  
+  start_test("onValid Callback Function");
+  testPacket.drop();
+  testPacket.onPacketValidation(&ok_test);
+  arrSize = sizeof(validPacket)/sizeof(uint8_t);
+  insertSize = insert_array_in_packet(validPacket, arrSize, &testPacket);
+  assert_true(ret);
 
   start_test("Valid Packet Parsing");
-  bool ret{true};
-  testPacket.clear();
+  ret = true;
+  testPacket.drop();
   arrSize = sizeof(validPacket)/sizeof(uint8_t);
   insertSize = insert_array_in_packet(validPacket, arrSize, &testPacket);
   ret &= (arrSize == insertSize);
@@ -97,17 +116,51 @@ int main() {
   ret &= (val == 994);
   assert_true(ret);
 
-  start_test("Invalid Wrong Packet");
-  testPacket.clear();
+  start_test("Parcial Packet Parsing Failure");
+  ret = true;
+  testPacket.drop();
+  arrSize = sizeof(validPacket)/sizeof(uint8_t) - 2;
+  insertSize = insert_array_in_packet(validPacket, arrSize, &testPacket);
+  ret &= (arrSize == insertSize);
+  ret_buff[10];
+  ret &= testPacket.get(1,ret_buff);
+  val = (ret == true) ? atoi((const char *)ret_buff) : 0;
+  ret &= (val == 10);
+  ret &= testPacket.get(2,ret_buff);
+  val = (ret == true) ? atoi((const char *)ret_buff) : 0;
+  ret &= (val == 994);
+  assert_false(ret);
+
+  start_test("Invalid Wrong Packet Failure");
+  testPacket.drop();
   arrSize = sizeof(invalidWrongPacket)/sizeof(uint8_t);
   insertSize = insert_array_in_packet(invalidWrongPacket, arrSize, &testPacket);
   assert_false(arrSize == insertSize);
   
-  start_test("Invalid Version Packet");
-  testPacket.clear();
+  start_test("Invalid Version Packet Failure");
+  testPacket.drop();
   arrSize = sizeof(invalidVersionPacket)/sizeof(uint8_t);
   insertSize = insert_array_in_packet(invalidVersionPacket, arrSize, &testPacket);
   assert_false(arrSize == insertSize);
-  
-  end_test();
+
+  start_test("Packet Setting Failure");
+  testPacket.drop();
+  insert_array_in_packet(validPacket, sizeof(validPacket)/sizeof(uint8_t), &testPacket);
+  testPacket.get(1,ret_buff);
+  assert_false(testPacket.set(1,ret_buff,2));
+
+  start_test("Packet Setting Success");
+  testPacket.drop();
+  insert_array_in_packet(validPacket, sizeof(validPacket)/sizeof(uint8_t), &testPacket);
+  testPacket.get(1,ret_buff);
+  testPacket.readyToAssembly();
+  testPacket.set(1,ret_buff,2);
+  testPacket.readyToDispatch();
+  uint8_t dummy;
+  assert_true(testPacket.onSerialOutEvent(dummy));
+
+  start_test("Packet Assemblying START Success");
+  assert_equal(dummy,START_CHAR);
+
+  return(end_test());
 }
