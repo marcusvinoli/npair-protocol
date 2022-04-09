@@ -1,63 +1,7 @@
-#include <iomanip>    // std::setw
-#include <ios>        // std::left
-#include <iostream>   // std::cout
-#include <string>     // std::string
-
+#include "test.h"
 #include "../src/npair.h"
 
-#define RED_COLOURING_START "\033[1;31m"
-#define GREEN_COLOURING_START "\033[1;32m"
-#define COLOURING_STOP "\033[1;0m"
-
-bool overall_ret{true};
-template<typename T>
-void assert_equal(const T& expected, const T& actual) {
-  if (expected == actual) {
-    std::cout << GREEN_COLOURING_START;
-    std::cout<< "[OK]"<< std::endl << COLOURING_STOP;
-  } else {
-    std::cout << RED_COLOURING_START;
-    std::cout<< "[FAIL]"<<std::endl << COLOURING_STOP;
-    std::cout<<"\t  Expected: "<< expected <<std::endl;
-    std::cout<<"\t  Actual: "<< actual <<std::endl;
-    overall_ret = false;
-  }
-}
-
-template<typename T, typename U>
-void assert_equal(const T& expected, const U& actual) {
-  T _actual = (T)actual;
-  assert_equal(expected, _actual);
-}
-
-void assert_true(const bool a) {
-  assert_equal(true, a);
-}
-
-void assert_false(const bool a){
-  assert_equal(false, a);
-}
-
-void start_test(std::string test_name) {
-  static int test_no{0};
-  std::cout << std::endl << "TEST [" << test_no << "] " << test_name <<": ";
-  test_no++;
-}
-
-int end_test() {
-  std::cout << std::endl;
-  if(overall_ret) {
-    std::cout << GREEN_COLOURING_START;
-    std::cout << "SUCCESS! ALL TEST PASSED! 😁" << std::endl;
-  } else {
-    std::cout << RED_COLOURING_START;
-    std::cout << "FAILURE! ONE OR MORE TEST FAILED. 😟" << std::endl;
-  }
-  std::cout << COLOURING_STOP;
-  std::cout << std::endl;
-
-  return (int)overall_ret;
-}
+Test test;
 
 uint8_t validVoidPacket[] = {'$', '0', '0', '1', '1', 0, '{', '}', '\n'};
 uint8_t validPacket[] = {'$', '0', '0', '1', '1', 0, '{', '1', ':', '1', '0', ',', '2', ':', '9', '9', '4','}', '\n'};
@@ -82,26 +26,26 @@ void ok_test() {
 }
 
 int main() {
-  start_test("Valid Void Packet");
+  test.startTest("Valid Void Packet");
   testPacket.drop();
   int arrSize = sizeof(validVoidPacket)/sizeof(uint8_t);
   int insertSize = insert_array_in_packet(validVoidPacket, arrSize, &testPacket);
-  assert_equal(arrSize, insertSize);
+  test.assertEqual(arrSize, insertSize);
 
-  start_test("Valid Normal Packet");
+  test.startTest("Valid Normal Packet");
   testPacket.drop();
   arrSize = sizeof(validPacket)/sizeof(uint8_t);
   insertSize = insert_array_in_packet(validPacket, arrSize, &testPacket);
-  assert_equal(arrSize, insertSize);
+  test.assertEqual(arrSize, insertSize);
   
-  start_test("onValid Callback Function");
+  test.startTest("onValid Callback Function");
   testPacket.drop();
   testPacket.onPacketValidation(&ok_test);
   arrSize = sizeof(validPacket)/sizeof(uint8_t);
   insertSize = insert_array_in_packet(validPacket, arrSize, &testPacket);
-  assert_true(ret);
+  test.assertTrue(ret);
 
-  start_test("Valid Packet Parsing");
+  test.startTest("Valid Packet Parsing");
   ret = true;
   testPacket.drop();
   arrSize = sizeof(validPacket)/sizeof(uint8_t);
@@ -114,9 +58,9 @@ int main() {
   ret &= testPacket.get(2,ret_buff);
   val = atoi((const char *)ret_buff);
   ret &= (val == 994);
-  assert_true(ret);
+  test.assertTrue(ret);
 
-  start_test("Parcial Packet Parsing Failure");
+  test.startTest("Parcial Packet Parsing Failure");
   ret = true;
   testPacket.drop();
   arrSize = sizeof(validPacket)/sizeof(uint8_t) - 2;
@@ -129,27 +73,27 @@ int main() {
   ret &= testPacket.get(2,ret_buff);
   val = (ret == true) ? atoi((const char *)ret_buff) : 0;
   ret &= (val == 994);
-  assert_false(ret);
+  test.assertFalse(ret);
 
-  start_test("Invalid Wrong Packet Failure");
+  test.startTest("Invalid Wrong Packet Failure");
   testPacket.drop();
   arrSize = sizeof(invalidWrongPacket)/sizeof(uint8_t);
   insertSize = insert_array_in_packet(invalidWrongPacket, arrSize, &testPacket);
-  assert_false(arrSize == insertSize);
+  test.assertFalse(arrSize == insertSize);
   
-  start_test("Invalid Version Packet Failure");
+  test.startTest("Invalid Version Packet Failure");
   testPacket.drop();
   arrSize = sizeof(invalidVersionPacket)/sizeof(uint8_t);
   insertSize = insert_array_in_packet(invalidVersionPacket, arrSize, &testPacket);
-  assert_false(arrSize == insertSize);
+  test.assertFalse(arrSize == insertSize);
 
-  start_test("Packet Setting Failure");
+  test.startTest("Packet Setting Failure");
   testPacket.drop();
   insert_array_in_packet(validPacket, sizeof(validPacket)/sizeof(uint8_t), &testPacket);
   testPacket.get(1,ret_buff);
-  assert_false(testPacket.set(1,ret_buff,2));
+  test.assertFalse(testPacket.set(1,ret_buff,2));
 
-  start_test("Packet Setting Success");
+  test.startTest("Packet Setting Success");
   testPacket.drop();
   insert_array_in_packet(validPacket, sizeof(validPacket)/sizeof(uint8_t), &testPacket);
   testPacket.get(1,ret_buff);
@@ -157,10 +101,10 @@ int main() {
   testPacket.set(1,ret_buff,2);
   testPacket.readyToDispatch();
   uint8_t dummy;
-  assert_true(testPacket.onSerialOutEvent(dummy));
+  test.assertTrue(testPacket.onSerialOutEvent(dummy));
 
-  start_test("Packet Assemblying START Success");
-  assert_equal(dummy,START_CHAR);
+  test.startTest("Packet Assemblying START Success");
+  test.assertEqual(dummy,START_CHAR);
 
-  return(end_test());
+  return(test.endTest());
 }
