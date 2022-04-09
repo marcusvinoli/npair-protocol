@@ -29,12 +29,18 @@ namespace npair {
 template <typename T>
 class ControlValue : public DataObject<T> {
   public:
-  ControlValue((bool*) write_fn(T)) { write_callback = write_fn; }
+  ControlValue(uint16_t addr, bool(*write_fn)(T*)) : DataObject<T>(addr) { write_callback = write_fn;};
   bool update();
 
-  private: 
-  (bool*) write_callback(T);
+  protected: 
+  bool (*write_callback)(T*);
 };
+
+template <typename T>
+bool ControlValue<T>::update() {
+  T val = DataObject<T>::getValue(); 
+  return write_callback(&val);
+}
 
 }
 
