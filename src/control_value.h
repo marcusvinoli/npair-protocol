@@ -20,9 +20,12 @@
  */
 
 #include "data_object.h"
+#include "packet.h"
 
 #ifndef __NPAIR_CONTROL_VALUE_H__
 #define __NPAIR_CONTROL_VALUE_H__
+
+#define BUFFER_SIZE 10
 
 namespace npair {
 
@@ -31,10 +34,20 @@ class ControlValue : public DataObject<T> {
   public:
   ControlValue(uint16_t addr, bool(*write_fn)(T*)) : DataObject<T>(addr) { write_callback = write_fn;};
   bool update();
+  bool update(Packet &pckt);
+  bool parse(Packet &pckt);
 
   protected: 
   bool (*write_callback)(T*);
 };
+
+template<typename T>
+bool ControlValue<T>::update(Packet &pckt) {
+  if(ControlValue<T>::parse(pckt)) {
+    return update();
+  } 
+  return false;
+}
 
 template <typename T>
 bool ControlValue<T>::update() {
@@ -42,6 +55,34 @@ bool ControlValue<T>::update() {
   return write_callback(&val);
 }
 
+
+template <>
+bool ControlValue<bool>::parse(Packet &pckt) {
+  uint8_t buff[BUFFER_SIZE];
+  if(pckt.get(DataObject<bool>::address, buff)) {
+    if(buff[0] == '0') {
+      DataObject<bool>::setValue(false);
+    } else if(buff[0] == '1') {
+      DataObject<bool>::setValue(true);
+    } else {
+      return false;
+    }
+    return true;
+  }
+  return false;
 }
+
+template <>
+bool ControlValue<int>::parse(Packet &pckt) {
+  uint8_t buff[BUFFER_SIZE]; // = {'\0'};
+  if(pckt.get(DataObject<int>::address, buff)) {
+    int val = atoi((char*)buff);
+    DataObject<int>::setValue(val);
+    return true;
+  }
+  return false;
+}
+
+} 
 
 #endif // __NPAIR_CONTROL_VALUE_H__

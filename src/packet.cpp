@@ -161,7 +161,7 @@ bool Packet::get(uint16_t addr, uint8_t dest[]) {
     }
     index_start = find(SEPARATOR_CHAR, index_end);
     index_end = find(ATTRIBUTE_CHAR, index_start+1);
-  } while(index_end > -1);
+  } while(index_start != -1);
   return false;
 }
 

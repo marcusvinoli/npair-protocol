@@ -80,7 +80,7 @@ class Packet : public Buffer<MAX_PACKET_SIZE> {
   void readyToDispatch();
 
   private:
-  void (*validationCallback)(void);
+  void (*validationCallback)(void){nullptr};
   packet_status status{IDLE};
   uint8_t version[3];
   int find(uint8_t value, int from_index = 0);
