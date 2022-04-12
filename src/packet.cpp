@@ -88,13 +88,17 @@ bool Packet::onSerialInEvent(uint8_t &data) {
 }
 
 bool Packet::onSerialOutEvent(uint8_t &data) {
-  if(status != READY_FOR_DISPATCH || status == DISPATCHING) {
+  static int index{0};
+  
+  if((status != READY_FOR_DISPATCH) && (status != DISPATCHING)) {
     return false;
-  } else {
+  }
+  
+  if(status == READY_FOR_DISPATCH) {
+    index = 0;
     status = DISPATCHING;
   }
   
-  static int index{0};
   const uint8_t overhead[] = {
     START_CHAR,
     VERSION_MAJOR,
@@ -104,18 +108,17 @@ bool Packet::onSerialOutEvent(uint8_t &data) {
 
   if(index <= 3){
     data = overhead[index];
-    index++; 
+    index++;
     return true;
   }
 
   if(index == 4) {
-    uint8_t n = (uint8_t)getOccupation();
-    data = n;
+    data = (uint8_t) getOccupation();
+    index++;
     return true;
   }
   
-  bool ret = read(data);
-  if (ret) {
+  if (read(data)) {
     status = DISPATCHING;
     return true;
   } else {
@@ -185,7 +188,7 @@ bool Packet::set(uint16_t addr, uint8_t data[], int data_size) {
   }
   
   char buff[] = {0, 0, 0, 0, 0, 0};
-  sprintf(buff, "%d", addr);
+  sprintf(buff, "%d:", addr);
   int index = 0; 
   
   while(buff[index] != '\0') {
@@ -194,8 +197,6 @@ bool Packet::set(uint16_t addr, uint8_t data[], int data_size) {
     index++;
   }
   
-  Buffer::write(tmp_char);
-
   for(int i = 0; i<data_size; i++) {
     Buffer::write(data[i]);
   }

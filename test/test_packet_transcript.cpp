@@ -36,12 +36,14 @@ SampledValue<int> IntSV06(100,&inSvINTFunctionOK);
 
 bool ret{false};
 
-uint8_t expectPcktArray[] = {'$', '0', '0', '1', 10, '{', '1', ':', '1', '0', '2', ',', '4', ':', '9', ',', '3', ':', '0', ',', '1', '0', '0', ':', '1','0','2','3','}', '\n'};
+uint8_t expectPcktArray[] = {'$', '0', '0', '1', '0', '{', '1', ':', '1', '0', '2', ',', '4', ':', '9', ',', '3', ':', '0', ',', '1', '0', '0', ':', '1','0','2','3','}', '\n'};
 
 void dumpPacket(Packet *pckt) {
   uint8_t val;
+  int counter{0};
   while(pckt->onSerialOutEvent(val)) {
-    std::cout<<val;
+    if(val < ' ') {val = 'N';} // Prevents packet size changes the STD Output
+    std::cout << (char) val << " ";
   };
 }
 
@@ -78,4 +80,8 @@ int main() {
   test.assertEqual(BoolSV05.getValue(), 0);
 
   test.endTest();
+
+  testPacket.readyToDispatch();
+  dumpPacket(&testPacket);
+
 }
