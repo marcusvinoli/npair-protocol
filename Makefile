@@ -43,3 +43,7 @@ test-control-value:
 test-packet-parsing: 
 	${COMPILER} ${SRCS} ${TEST_LIB} ${TEST_DIR}test_packet_parsing.cpp -o ${OUTPUT_DIR}test_packet_parsing
 	${OUTPUT_DIR}test_packet_parsing
+
+test-packet-transcript:
+	${COMPILER} ${SRCS} ${TEST_LIB} ${TEST_DIR}test_packet_transcript.cpp -o ${OUTPUT_DIR}test_packet_transcript
+	${OUTPUT_DIR}test_packet_transcript

@@ -20,9 +20,12 @@
  */
 
 #include "data_object.h"
+#include "packet.h"
 
 #ifndef __NPAIR_SAMPLED_VALUE_H__
 #define __NPAIR_SAMPLED_VALUE_H__
+
+#define DATA_BUFFER_SIZE 20
 
 namespace npair {
 
@@ -31,12 +34,14 @@ class SampledValue : public DataObject<T> {
   public:
   SampledValue(uint16_t addr, bool(*read_fn)(T*)) : DataObject<T>(addr) { read_callback = read_fn;}
   bool update();
+  bool update(Packet &pckt);
+  bool transcript(Packet &pckt);
   
   protected: 
   bool (*read_callback)(T*);
 };
 
-template <typename T>
+/* template <typename T>
 bool SampledValue<T>::update() {
   T val; 
   if(read_callback(&val)) {
@@ -44,6 +49,41 @@ bool SampledValue<T>::update() {
     return true;
   }
   return false;
+} */
+
+template <typename T>
+bool SampledValue<T>::update() {
+  T val;
+  if(read_callback(&val)) {
+    DataObject<T>::setValue(val);
+    return true;
+  }
+  return false;
+}
+
+template <typename T>
+bool SampledValue<T>::update(Packet &pckt) {
+  if(SampledValue<T>::update()) {
+    return SampledValue<T>::transcript(pckt);
+  }
+  return false;
+}
+
+template <> 
+bool SampledValue<int>::transcript(Packet &pckt) {
+  uint8_t buff[DATA_BUFFER_SIZE];
+  int data_size = sprintf((char*)buff,"%d",getValue());
+  if(data_size > 0) {
+    return pckt.set(address, buff, data_size);
+  }
+  return false;
+}
+
+template <>
+bool SampledValue<bool>::transcript(Packet &pckt) {
+  uint8_t buff = {'1'};
+  buff = getValue() == true ? '1' : '0';
+  return pckt.set(address, &buff, 1);
 }
 
 }

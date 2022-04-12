@@ -20,6 +20,8 @@
  */
 
 #include <stdint.h>
+#include <stdlib.h> 
+#include <stdio.h>
 
 #ifndef __NPAIR_BUFFER_H__
 #define __NPAIR_BUFFER_H__
