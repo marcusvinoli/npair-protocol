@@ -18,7 +18,7 @@ uint16_t TestFixture<T>::getAddress() {
 
 template <typename T>
 bool TestFixture<T>::compareCallback(bool (*compare)(T*)) {
-  return (compare == ControlValue<T>::read_callback);
+  return (compare == SampledValue<T>::read_callback);
 }
 
 bool boolReadCallbackOK(bool *val) {
