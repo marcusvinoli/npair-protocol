@@ -55,34 +55,6 @@ bool ControlValue<T>::update() {
   return write_callback(&val);
 }
 
-
-template <>
-bool ControlValue<bool>::parse(Packet &pckt) {
-  uint8_t buff[BUFFER_SIZE];
-  if(pckt.get(DataObject<bool>::address, buff)) {
-    if(buff[0] == '0') {
-      DataObject<bool>::setValue(false);
-    } else if(buff[0] == '1') {
-      DataObject<bool>::setValue(true);
-    } else {
-      return false;
-    }
-    return true;
-  }
-  return false;
-}
-
-template <>
-bool ControlValue<int>::parse(Packet &pckt) {
-  uint8_t buff[BUFFER_SIZE]; // = {'\0'};
-  if(pckt.get(DataObject<int>::address, buff)) {
-    int val = atoi((char*)buff);
-    DataObject<int>::setValue(val);
-    return true;
-  }
-  return false;
-}
-
 } 
 
 #endif // __NPAIR_CONTROL_VALUE_H__

@@ -41,16 +41,6 @@ class SampledValue : public DataObject<T> {
   bool (*read_callback)(T*);
 };
 
-/* template <typename T>
-bool SampledValue<T>::update() {
-  T val; 
-  if(read_callback(&val)) {
-    DataObject<T>::setValue(val);
-    return true;
-  }
-  return false;
-} */
-
 template <typename T>
 bool SampledValue<T>::update() {
   T val;
@@ -67,23 +57,6 @@ bool SampledValue<T>::update(Packet &pckt) {
     return SampledValue<T>::transcript(pckt);
   }
   return false;
-}
-
-template <> 
-bool SampledValue<int>::transcript(Packet &pckt) {
-  uint8_t buff[DATA_BUFFER_SIZE];
-  int data_size = sprintf((char*)buff,"%d",getValue());
-  if(data_size > 0) {
-    return pckt.set(address, buff, data_size);
-  }
-  return false;
-}
-
-template <>
-bool SampledValue<bool>::transcript(Packet &pckt) {
-  uint8_t buff = {'1'};
-  buff = getValue() == true ? '1' : '0';
-  return pckt.set(address, &buff, 1);
 }
 
 }

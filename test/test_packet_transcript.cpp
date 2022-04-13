@@ -5,6 +5,23 @@ Test test;
 
 using namespace npair;
 
+template <> 
+bool SampledValue<int>::transcript(Packet &pckt) {
+  uint8_t buff[DATA_BUFFER_SIZE];
+  int data_size = sprintf((char*)buff,"%d",getValue());
+  if(data_size > 0) {
+    return pckt.set(address, buff, data_size);
+  }
+  return false;
+}
+
+template <>
+bool SampledValue<bool>::transcript(Packet &pckt) {
+  uint8_t buff = {'1'};
+  buff = getValue() == true ? '1' : '0';
+  return pckt.set(address, &buff, 1);
+}
+
 bool inSvINTFunctionOK(int *value) {
   *value = 1002;
   std::cout<<"INT SampledValue transmitted: " << "1002" << "\t";

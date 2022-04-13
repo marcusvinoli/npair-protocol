@@ -5,6 +5,34 @@ Test test;
 
 using namespace npair;
 
+
+template <>
+bool ControlValue<bool>::parse(Packet &pckt) {
+  uint8_t buff[BUFFER_SIZE];
+  if(pckt.get(DataObject<bool>::address, buff)) {
+    if(buff[0] == '0') {
+      DataObject<bool>::setValue(false);
+    } else if(buff[0] == '1') {
+      DataObject<bool>::setValue(true);
+    } else {
+      return false;
+    }
+    return true;
+  }
+  return false;
+}
+
+template <>
+bool ControlValue<int>::parse(Packet &pckt) {
+  uint8_t buff[BUFFER_SIZE]; // = {'\0'};
+  if(pckt.get(DataObject<int>::address, buff)) {
+    int val = atoi((char*)buff);
+    DataObject<int>::setValue(val);
+    return true;
+  }
+  return false;
+}
+
 bool inCvINTFunctionOK(int *value) {
   std::cout<<"INT ControlValue received: " << *value << "\t";
   return true;
