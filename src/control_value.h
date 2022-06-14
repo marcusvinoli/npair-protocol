@@ -32,13 +32,14 @@ namespace npair {
 template <typename T>
 class ControlValue : public DataObject<T> {
   public:
-  ControlValue(uint16_t addr, bool(*write_fn)(T*)) : DataObject<T>(addr) { write_callback = write_fn;};
+  ControlValue(uint16_t addr) : DataObject<T>(addr) { }
   bool update();
   bool update(Packet &pckt);
   bool parse(Packet &pckt);
+  void setCallback(bool (*write_fn)(T*)) {write_callback = write_fn;}
 
   protected: 
-  bool (*write_callback)(T*);
+  bool (*write_callback)(T*){nullptr};
 };
 
 template<typename T>
@@ -51,10 +52,12 @@ bool ControlValue<T>::update(Packet &pckt) {
 
 template <typename T>
 bool ControlValue<T>::update() {
-  T val = DataObject<T>::getValue(); 
+  if(write_callback == nullptr) {
+    return false;
+  }
+  T val = DataObject<T>::getValue();
   return write_callback(&val);
 }
-
 } 
 
 #endif // __NPAIR_CONTROL_VALUE_H__

@@ -32,11 +32,12 @@ namespace npair {
 template <typename T>
 class SampledValue : public DataObject<T> {
   public:
-  SampledValue(uint16_t addr, bool(*read_fn)(T*)) : DataObject<T>(addr) { read_callback = read_fn;}
+  SampledValue(uint16_t addr) : DataObject<T>(addr) { }
   bool update();
   bool update(Packet &pckt);
   bool transcript(Packet &pckt);
-  
+  void setCallback(bool (*write_fn)(T*)) {read_callback = write_fn;}
+
   protected: 
   bool (*read_callback)(T*);
 };
@@ -44,6 +45,10 @@ class SampledValue : public DataObject<T> {
 template <typename T>
 bool SampledValue<T>::update() {
   T val;
+  if(read_callback == nullptr) {
+    return false;
+  }
+  
   if(read_callback(&val)) {
     DataObject<T>::setValue(val);
     return true;

@@ -71,11 +71,11 @@ bool Packet::onSerialInEvent(uint8_t &data) {
     case END_DELIMITER:
       write(data);
       if(data == EOP_CHAR) {
-        status = END_OF_PACKET;
+        status = END_OF_PACKET; // Maybe not needed.
+        status = PARSING;
         if(validationCallback != nullptr) {
           validationCallback();
         }
-        status = PARSING;
       } else {
         status = COLLECTING_DO_ADDR;
       }
